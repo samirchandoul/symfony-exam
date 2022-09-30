@@ -1,6 +1,6 @@
 # Exercice 3 - Compréhension du code php
 
-Ouvrir les fichiers `src/Controller/BookController.php` puis analyser le code.
+Ouvrir le fichier `src/Controller/BookController.php` puis analyser le code.
 
 Déterminer le fonctionnement du code,
 relever & corriger les problèmes,
