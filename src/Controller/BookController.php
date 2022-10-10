@@ -2,51 +2,47 @@
 
 namespace App\Controller;
 
+use App\Repository\BookRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class BookController extends AbstractController
 {
     /**
-     * return all namme of books in json format
-     *
+     * return all title of books in json format
+     * @param BookRepository $bookRepository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
      */
-    #[Route('/books/list', name: 'list-of-my-books', methods: ['POST'], format: 'json')]
-    public function book()
+    #[Route('/books/list', name: 'list-of-my-books', methods: ['GET'], format: 'json')]
+    public function books(BookRepository $bookRepository,SerializerInterface $serializer): JsonResponse
     {
-        $book = $this->container->get('doctrine.orm.default_entity_manager')->getRepository("App\Entity\Book")->findBy(['id' => 1]);
+        $books = $bookRepository->findAll();
+        $jsonBooks = $serializer->serialize($books, 'json', ['groups' => 'getBook']);
+        return new JsonResponse($jsonBooks, Response::HTTP_OK, [], true);
 
-        $template = $this->container->get('twig')->load('book/index.html.twig');
-
-        return $template->render([
-            'return' => json_encode([
-                'data' => json_encode($book[0]['name'])
-            ]),
-        ]);
     }
 
     /**
-     * parcour all books and add sufix on name
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $entityManager
+     * @param BookRepository $bookRepository
+     * @return JsonResponse
      */
-    #[Route('/books/add-sufix', name: 'add-sufix-on-my-books', methods: ['GET'], format: 'json')]
-    public function addSufix(string $suffix)
+    #[Route('/books/add-suffix', name: 'add-suffix-on-my-books', methods: ['PATCH'], format: 'json')]
+    public function addSuffix(SerializerInterface $serializer, EntityManagerInterface $entityManager,BookRepository $bookRepository)
     {
-        $books = $this->container->get('doctrine.orm.default_entity_manager')->getRepository("App\Entity\Book")->findBy([]);
-
+        $books = $bookRepository->findAll();
         foreach ($books as $book) {
-            $book->name .= ' - Sufix';
-            $this->container->get('doctrine.orm.default_entity_manager')->persist($book);
-            $this->container->get('doctrine.orm.default_entity_manager')->flush();
+            $book->setTitle($book->getTitle().' - Suffix');
+            $entityManager->persist($book);
         }
-
-
-        $template = $this->container->get('twig')->load('book/index.html.twig');
-
-        return $template->render([
-            'return' => json_encode([
-                'data' => json_encode('ok'),
-                'books' => json_encode($books)
-            ]),
-        ]);
+        $entityManager->flush();
+        $jsonBooks = $serializer->serialize($books, 'json', ['groups' => 'getBook']);
+        return new JsonResponse($jsonBooks, Response::HTTP_OK, [], true);
     }
 }

@@ -2,27 +2,6 @@
 
 namespace App\Service;
 
-class File
-{
-    public function __construct(
-        public readonly string $name,
-    ) {
-    }
-}
-
-class Directory
-{
-    /**
-     * @param string $name
-     * @param (File|Directory)[] $children
-     */
-    public function __construct(
-        public readonly string $name,
-        public readonly array $children,
-    ) {
-    }
-}
-
 class VisitFiles
 {
     /**
@@ -30,21 +9,27 @@ class VisitFiles
      *
      * Return a list of every files filtered by given function.
      *
-     * @param TODO $root
-     * @param TODO $filterFn
+     * @param String $root
+     * @param callable $filterFn
      *
-     * @return TODO
+     * @return void
      */
-    public function visitFiles($root, callable $filterFn): void
+    public function visitFiles(String $root, callable $filterFn): void
     {
-        // @TODO
+        $directory = new Directory();
+        $directory->name = $root;
+        foreach($directory->children as $filename){
+            if($filterFn($filename)){
+                echo $filename, '<br>';
+            }
+        }
     }
 
     public function usageExemple(): void
     {
         $this->visitFiles(
-            null, // @TODO use a concrete root exemple
-            function ($file) {
+            ' __DIR__', // @TODO use a concrete root exemple
+            function (File $file) {
                 $name = $file->name;
                 for ($i = 0; $i < floor(strlen($name)); $i++) {
                     if ($name[$i] != $name[strlen($name) - $i - 1]) {
@@ -56,3 +41,4 @@ class VisitFiles
         );
     }
 }
+
